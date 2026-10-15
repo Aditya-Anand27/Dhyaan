@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dhyaan — Passive Elder Monitoring</title>
+<meta name="description" content="Passive health monitoring for India's elderly. A floor mat, a bed sensor and motion sensors capture health data with zero effort; families monitor it and doctors act on it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF7F1; --surface:#FFFFFF; --surface2:#F4EEE6; --ink:#1F1A16; --muted:#6B6158; --line:#E8DFD3;
+  --accent:#C2562B; --accent-soft:#F6E3D8; --ok:#2F7D5B; --warn:#B9770F; --alert:#B83A2E; --cool:#4B7FA8; --elder:#6A4BA8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16130F; --surface:#201B16; --surface2:#2A241D; --ink:#F3ECE3; --muted:#A99D90; --line:#3A322A;
+    --accent:#E07A4C; --accent-soft:#3A2519; --ok:#5DBB8E; --warn:#E3A845; --alert:#E3685A; --cool:#7FB0D6; --elder:#A98BE6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16130F; --surface:#201B16; --surface2:#2A241D; --ink:#F3ECE3; --muted:#A99D90; --line:#3A322A;
+  --accent:#E07A4C; --accent-soft:#3A2519; --ok:#5DBB8E; --warn:#E3A845; --alert:#E3685A; --cool:#7FB0D6; --elder:#A98BE6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.15}
+button{font:inherit;color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+.logo{font-family:Fraunces,serif;font-size:22px;font-weight:600}
+.logo span{color:var(--accent)}
+nav ul{display:flex;gap:20px;list-style:none;font-size:14px}
+nav a{color:var(--muted);text-decoration:none}
+nav a:hover{color:var(--ink)}
+@media(max-width:700px){nav ul{display:none}}
+.theme{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;margin-left:16px}
+
+.hero{padding:40px 0 20px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.hero h1{font-size:clamp(30px,4.6vw,48px);max-width:24ch;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.lede{font-size:clamp(16px,1.8vw,18px);color:var(--muted);max-width:68ch}
+
+/* prototype shell */
+.proto{background:var(--surface);border:1px solid var(--line);border-radius:22px;margin:24px 0 64px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(60,30,10,.35)}
+.proto-top{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--surface2)}
+.scen{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.scen small{color:var(--muted);font-size:12px;margin-right:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.steps button{background:none;border:0;border-right:1px solid var(--line);padding:14px 12px;text-align:left;cursor:pointer;position:relative}
+.steps button:last-child{border-right:0}
+.steps button b{display:block;font-size:14px}
+.steps button span{font-size:12px;color:var(--muted)}
+.steps button i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface2);font-size:12px;font-weight:600;margin-bottom:6px}
+.steps button.on{background:var(--accent-soft)}
+.steps button.on i{background:var(--accent);color:#fff}
+.steps button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--accent)}
+@media(max-width:640px){.steps button span{display:none}.steps button{padding:10px 8px}}
+.pane{display:none;padding:24px 20px}
+.pane.on{display:block}
+.pane-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.pane-head h2{font-size:clamp(22px,3vw,28px)}
+.pane-head p{color:var(--muted);font-size:15px;max-width:62ch;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:999px;border:0;text-decoration:none;font-weight:600;font-size:14px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.nav-row{display:flex;justify-content:space-between;margin-top:22px;gap:12px;flex-wrap:wrap}
+
+/* step 1 kit */
+.kit{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.kit{grid-template-columns:1fr}}
+.sensor{border:1.5px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;transition:border-color .2s,opacity .2s;background:var(--surface);text-align:left;width:100%}
+.sensor.on{border-color:var(--accent)}
+.sensor:not(.on){opacity:.6}
+.sensor .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sw{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.sensor.on .sw{background:var(--accent)}
+.sensor.on .sw::after{transform:translateX(16px)}
+.sensor h3{font-size:19px;margin-bottom:2px}
+.sensor .where{font-size:13px;color:var(--muted);margin-bottom:10px}
+.sensor ul{list-style:none;font-size:14px}
+.sensor li{padding:4px 0;border-top:1px dashed var(--line);display:flex;gap:8px}
+.sensor li::before{content:"●";color:var(--accent);font-size:9px;margin-top:6px}
+.sensor .price{margin-top:12px;font-size:13px;color:var(--muted)}
+.icon{width:44px;height:44px}
+.order{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:820px){.order{grid-template-columns:1fr}}
+.box{background:var(--surface2);border-radius:14px;padding:16px}
+.box h4{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-top:1px solid var(--line)}
+.kv:first-of-type{border-top:0}
+.kv span{color:var(--muted)}
+.install li{list-style:none;padding:6px 0;font-size:14px;display:flex;gap:10px;align-items:center;color:var(--muted)}
+.install li.done{color:var(--ink)}
+.install li .tick{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:11px;flex:none}
+.install li.done .tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.install li.busy .tick{border-color:var(--accent);border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* step 2 home */
+.home{display:grid;grid-template-columns:1.45fr 1fr;gap:18px}
+@media(max-width:900px){.home{grid-template-columns:1fr}}
+.plan{background:var(--surface2);border-radius:16px;padding:10px}
+.plan svg{width:100%;height:auto;display:block}
+.room{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.rlabel{font:600 11px Inter,sans-serif;fill:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.node{transition:opacity .3s}
+.node.off{opacity:.15}
+.ring{fill:none;stroke:var(--accent);stroke-width:2;opacity:0}
+.node.ping .ring{animation:ping 1.1s ease-out}
+@keyframes ping{0%{opacity:.9;r:6}100%{opacity:0;r:30}}
+#elder{transition:transform .7s cubic-bezier(.4,.1,.2,1),opacity .4s}
+.ctrl{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.ctrl input[type=range]{flex:1;min-width:160px;accent-color:var(--accent)}
+.clock{font:600 28px Fraunces,serif;min-width:88px}
+.speed{display:flex;gap:4px}
+.speed button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.speed button.on{background:var(--ink);color:var(--bg)}
+.side{display:flex;flex-direction:column;gap:12px}
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.counters div{background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
+.counters strong{display:block;font:600 22px Fraunces,serif}
+.counters small{font-size:11px;color:var(--muted)}
+.log{list-style:none;background:var(--surface2);border-radius:14px;padding:8px 12px;height:300px;overflow:auto;font-size:13px}
+.log li{display:grid;grid-template-columns:44px 14px 1fr;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);align-items:start;animation:fadein .4s}
+.log li:last-child{border-bottom:0}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums}
+.log .dot{width:8px;height:8px;border-radius:50%;margin-top:6px}
+.log li.alert{color:var(--alert);font-weight:600}
+.log .empty{display:block;color:var(--muted);padding:20px 0;text-align:center}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}}
+.now{font-size:14px;color:var(--muted)}
+.now b{color:var(--ink)}
+
+/* step 3 monitor */
+.mon{display:grid;grid-template-columns:340px 1fr;gap:18px}
+@media(max-width:900px){.mon{grid-template-columns:1fr}}
+.phone{border:1px solid var(--line);border-radius:28px;padding:18px;background:var(--bg);max-width:360px;width:100%;margin:0 auto}
+.ph-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font-weight:600;color:var(--accent)}
+.ph-head small{display:block;color:var(--muted);font-size:12px}
+.status{border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.status.ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.status.warn{background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.status.alert{background:color-mix(in srgb,var(--alert) 14%,transparent)}
+.status strong{display:block;font-size:14px}
+.status p{font-size:13px;color:var(--muted);margin-top:3px}
+.missed{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:10px}
+.missed b{color:var(--ink)}
+.feed{list-style:none;font-size:13px;color:var(--muted);margin-top:6px}
+.feed li{padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.feed li.doc{color:var(--ok);font-weight:500}
+.trends{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.tcard{background:var(--surface2);border-radius:14px;padding:12px;border:1.5px solid transparent;cursor:pointer}
+.tcard.flag{border-color:var(--alert)}
+.tcard.off{opacity:.55;cursor:default}
+.tcard .tn{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.tcard .tv{font:600 22px Fraunces,serif;margin:2px 0 4px}
+.tcard svg{width:100%;height:46px;display:block}
+.tcard .need{font-size:12px;color:var(--muted);padding:12px 0}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* step 4 doctor */
+.doc-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface2);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.doc-head strong{font-size:16px}
+.doc-head small{display:block;color:var(--muted);font-size:13px}
+.docgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+@media(max-width:900px){.docgrid{grid-template-columns:1fr}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:10px 12px;background:var(--surface2)}
+td{padding:10px 12px;border-top:1px solid var(--line)}
+.dt tr{cursor:pointer}
+.dt tr.sel td{background:var(--accent-soft)}
+.dt tr.na td{color:var(--muted)}
+.flagc{font-weight:600;color:var(--alert)}
+.okc{color:var(--ok)}
+.bigchart{background:var(--surface2);border-radius:14px;padding:14px}
+.bigchart svg{width:100%;height:auto;display:block}
+.bigchart h3{font-size:18px}
+.bigchart p{font-size:13px;color:var(--muted);margin-bottom:8px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.actions button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+.actions button:hover{border-color:var(--accent)}
+.carelog{list-style:none;font-size:13px;margin-top:10px}
+.carelog li{padding:6px 0;border-top:1px solid var(--line);color:var(--muted)}
+.carelog li b{color:var(--ink);font-weight:600}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:all .3s;z-index:50;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* lower sections */
+section{padding:64px 0;border-top:1px solid var(--line)}
+h2.sec{font-size:clamp(26px,3.6vw,36px);margin-bottom:12px;max-width:24ch}
+.sub{color:var(--muted);max-width:62ch;margin-bottom:32px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px}
+.stat{font-family:Fraunces,serif;font-size:40px;font-weight:600;color:var(--accent);line-height:1}
+.card p{color:var(--muted);margin-top:8px;font-size:15px}
+.card h3{font-size:19px;margin-bottom:4px}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.calc{grid-template-columns:1fr}}
+.calc label{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:6px}
+.calc label b{color:var(--ink)}
+.calc .row{margin-bottom:20px}
+.calc input[type=range]{width:100%;accent-color:var(--accent)}
+.big{font-family:Fraunces,serif;font-size:clamp(38px,5vw,52px);font-weight:600;color:var(--accent);line-height:1}
+.risk td:first-child{font-weight:600;width:30%}
+.risk td:last-child{color:var(--muted)}
+.risk{min-width:540px}
+footer{padding:40px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo">Dhyaan<span>.</span></div>
+  <div style="display:flex;align-items:center">
+    <ul>
+      <li><a href="#prototype">Prototype</a></li>
+      <li><a href="#why">Why passive</a></li>
+      <li><a href="#ai">AI</a></li>
+      <li><a href="#model">Business</a></li>
+      <li><a href="#risks">Risks</a></li>
+    </ul>
+    <button class="theme" id="themeBtn" aria-label="Toggle theme">◐</button>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Consumer Tech · Elder care · India</p>
+  <h1>A home that <em>notices</em>, so elders don't have to do anything.</h1>
+  <p class="lede">A floor mat, a bed sensor and three motion sensors gather health data with zero effort from the elder. AI turns it into a few alerts that matter, and doctors get the full record. Play with the prototype below: pick a scenario, then walk through all four steps.</p>
+</div></header>
+
+<div class="wrap" id="prototype">
+<div class="proto">
+  <div class="proto-top">
+    <div class="scen" id="scen">
+      <small>Scenario</small>
+      <button class="pill on" data-s="normal">Normal day</button>
+      <button class="pill" data-s="foot">Foot ulcer developing</button>
+      <button class="pill" data-s="night">Night-time fall risk</button>
+      <button class="pill" data-s="routine">Missed morning routine</button>
+    </div>
+  </div>
+  <div class="steps" id="steps">
+    <button class="on" data-step="0"><i>1</i><b>Order &amp; install</b><span>Kit set up in 15 minutes</span></button>
+    <button data-step="1"><i>2</i><b>Sense</b><span>A day in the home</span></button>
+    <button data-step="2"><i>3</i><b>Monitor</b><span>Alerts &amp; 30-day trends</span></button>
+    <button data-step="3"><i>4</i><b>Doctor reviews</b><span>Clinical view &amp; action</span></button>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="pane on" id="p0">
+    <div class="pane-head">
+      <div><h2>Choose the sensors for Lakshmi's home</h2>
+      <p>Lakshmi is 72, lives alone in Chennai and has type 2 diabetes. Her family, clinic or insurer orders the kit. Toggle sensors to see what each one captures; turning one off changes what the system can catch later.</p></div>
+    </div>
+    <div class="kit" id="kit">
+      <button class="sensor on" data-k="mat">
+        <div class="top">
+          <svg class="icon" viewBox="0 0 44 44"><rect x="4" y="12" width="36" height="20" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><ellipse cx="17" cy="22" rx="4" ry="7" fill="var(--accent)" opacity=".6"/><ellipse cx="27" cy="22" rx="4" ry="7" fill="var(--accent)" opacity=".6"/></svg>
+          <span class="sw"></span>
+        </div>
+        <h3>Floor mat</h3><p class="where">Bathroom · stand 20 seconds each morning</p>
+        <ul><li>Foot temperature, left vs right</li><li>Weight trend</li><li>Standing balance and sway</li></ul>
+        <p class="price">₹6,999 one-time</p>
+      </button>
+      <button class="sensor on" data-k="bed">
+        <div class="top">
+          <svg class="icon" viewBox="0 0 44 44"><rect x="4" y="18" width="36" height="14" rx="3" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><rect x="6" y="13" width="10" height="7" rx="2" fill="var(--accent)" opacity=".5"/><path d="M14 26h4l2-4 3 7 2-3h5" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>
+          <span class="sw"></span>
+        </div>
+        <h3>Under-mattress sensor</h3><p class="where">Bedroom · slides under the mattress</p>
+        <ul><li>Sleep duration and quality</li><li>Heart rate and breathing</li><li>Night-time bed exits</li></ul>
+        <p class="price">₹4,999 one-time</p>
+      </button>
+      <button class="sensor on" data-k="motion">
+        <div class="top">
+          <svg class="icon" viewBox="0 0 44 44"><circle cx="22" cy="22" r="5" fill="var(--accent)"/><path d="M13 13a13 13 0 0 0 0 18M31 13a13 13 0 0 1 0 18M9 9a19 19 0 0 0 0 26M35 9a19 19 0 0 1 0 26" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity=".6"/></svg>
+          <span class="sw"></span>
+        </div>
+        <h3>Motion sensors ×3</h3><p class="where">Bathroom, kitchen, front door · stick-on</p>
+        <ul><li>Is the daily routine happening?</li><li>First movement of the day</li><li>Bathroom visits, outings</li></ul>
+        <p class="price">₹2,499 for three</p>
+      </button>
+    </div>
+    <div class="order">
+      <div class="box">
+        <h4>Order summary</h4>
+        <div id="orderLines"></div>
+        <div class="kv"><span>Monitoring subscription</span><strong>₹799 / month</strong></div>
+      </div>
+      <div class="box">
+        <h4>Installation</h4>
+        <ul class="install" id="install"></ul>
+        <div style="margin-top:10px"><button class="btn" id="installBtn">Install &amp; go live →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="pane" id="p1">
+    <div class="pane-head">
+      <div><h2>Today in Lakshmi's home</h2>
+      <p>Press play and watch a full day. Lakshmi (purple dot) just lives her life; each sensor pings as it captures data. Try the other scenarios, or switch a sensor off in step 1 and see what goes missing.</p></div>
+    </div>
+    <div class="home">
+      <div>
+        <div class="plan">
+          <svg viewBox="0 0 600 380" id="plan" role="img" aria-label="Floor plan of the home with sensors">
+            <rect class="room" x="10" y="10" width="270" height="200" rx="6"/>
+            <rect class="room" x="280" y="10" width="140" height="200" rx="6"/>
+            <rect class="room" x="420" y="10" width="170" height="200" rx="6"/>
+            <rect class="room" x="10" y="210" width="410" height="160" rx="6"/>
+            <rect class="room" x="420" y="210" width="170" height="160" rx="6"/>
+            <text class="rlabel" x="24" y="196">Bedroom</text>
+            <text class="rlabel" x="294" y="30">Bathroom</text>
+            <text class="rlabel" x="434" y="196">Kitchen</text>
+            <text class="rlabel" x="24" y="356">Living room</text>
+            <text class="rlabel" x="434" y="356">Entrance</text>
+            <!-- furniture -->
+            <rect x="34" y="34" width="150" height="100" rx="8" fill="var(--surface2)" stroke="var(--line)"/>
+            <rect x="42" y="42" width="40" height="84" rx="6" fill="var(--line)" opacity=".7"/>
+            <rect x="440" y="30" width="130" height="30" rx="4" fill="var(--surface2)" stroke="var(--line)"/>
+            <rect x="60" y="250" width="140" height="50" rx="10" fill="var(--surface2)" stroke="var(--line)"/>
+            <rect x="300" y="44" width="40" height="30" rx="6" fill="var(--surface2)" stroke="var(--line)"/>
+            <rect x="575" y="300" width="15" height="50" fill="var(--line)"/>
+            <!-- sensors -->
+            <g class="node" id="n-bed" data-sensor="bed"><circle class="ring" cx="130" cy="84" r="6"/><rect x="96" y="76" width="70" height="16" rx="4" fill="var(--accent)" opacity=".85"/><text x="131" y="88" text-anchor="middle" font-size="9" font-weight="600" fill="#fff" font-family="Inter">BED SENSOR</text></g>
+            <g class="node" id="n-mat" data-sensor="mat"><circle class="ring" cx="350" cy="168" r="6"/><rect x="310" y="152" width="80" height="32" rx="6" fill="var(--accent)" opacity=".85"/><text x="350" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#fff" font-family="Inter">MAT</text></g>
+            <g class="node" id="n-m-bath" data-sensor="motion"><circle class="ring" cx="404" cy="26" r="6"/><circle cx="404" cy="26" r="7" fill="var(--accent)"/></g>
+            <g class="node" id="n-m-kitchen" data-sensor="motion"><circle class="ring" cx="574" cy="194" r="6"/><circle cx="574" cy="194" r="7" fill="var(--accent)"/></g>
+            <g class="node" id="n-m-door" data-sensor="motion"><circle class="ring" cx="560" cy="290" r="6"/><circle cx="560" cy="290" r="7" fill="var(--accent)"/></g>
+            <!-- elder -->
+            <g id="elder" style="transform:translate(130px,110px)"><circle r="13" fill="var(--elder)" opacity=".25"/><circle r="7" fill="var(--elder)"/></g>
+          </svg>
+        </div>
+        <div class="ctrl">
+          <button class="btn dark" id="playBtn" style="min-width:92px">▶ Play</button>
+          <span class="clock" id="clock">00:00</span>
+          <input type="range" id="time" min="0" max="1439" value="0" aria-label="Time of day">
+          <div class="speed" id="speed"><button data-v="1">1×</button><button data-v="3" class="on">3×</button><button data-v="8">8×</button></div>
+        </div>
+      </div>
+      <div class="side">
+        <p class="now" id="now">Lakshmi is <b>asleep in bed</b>.</p>
+        <div class="counters">
+          <div><strong id="cMat">0</strong><small>mat readings</small></div>
+          <div><strong id="cBed">0</strong><small>bed events</small></div>
+          <div><strong id="cMot">0</strong><small>motion events</small></div>
+        </div>
+        <ul class="log" id="log"></ul>
+      </div>
+    </div>
+    <div class="nav-row"><button class="btn ghost" data-go="0">← Kit</button><button class="btn" data-go="2">See what the family sees →</button></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="pane" id="p2">
+    <div class="pane-head">
+      <div><h2>Monitoring: a few alerts, not a dashboard of numbers</h2>
+      <p>The AI compares each signal to Lakshmi's own baseline and only alerts on meaningful change. Click any trend to open it in the doctor's view.</p></div>
+    </div>
+    <div class="mon">
+      <div class="phone">
+        <div class="ph-head"><div class="avatar">L</div><div><strong>Lakshmi · Chennai</strong><small>Today, 30 days of data</small></div></div>
+        <div id="alerts"></div>
+        <div id="missed"></div>
+        <button class="btn" id="shareBtn" style="width:100%;justify-content:center;margin:4px 0 10px">Share 30-day report with Dr. Rao</button>
+        <ul class="feed" id="feed"></ul>
+      </div>
+      <div class="trends" id="trends"></div>
+    </div>
+    <div class="nav-row"><button class="btn ghost" data-go="1">← Home</button><button class="btn" data-go="3">Open doctor's view →</button></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="pane" id="p3">
+    <div class="doc-head">
+      <div><strong>Lakshmi K. · 72 · F</strong><small>Type 2 diabetes · Hypertension · Lives alone</small></div>
+      <div><strong>Dr. Rao, Diabetology</strong><small id="docSensors">Data from mat, bed, motion · last 30 days</small></div>
+    </div>
+    <div class="docgrid">
+      <div>
+        <div class="tablewrap">
+          <table class="dt"><thead><tr><th>Signal</th><th>Baseline</th><th>Last 7d</th><th>Status</th></tr></thead><tbody id="dtBody"></tbody></table>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px">Baseline = Lakshmi's own average over days 1–14. Click a row to chart it.</p>
+      </div>
+      <div>
+        <div class="bigchart"><h3 id="bcTitle">Signal</h3><p id="bcSub"></p><div id="bcSvg"></div></div>
+        <div class="actions" id="actions">
+          <button data-a="Foot exam booked for Friday">Book foot exam</button>
+          <button data-a="Fall-risk assessment ordered">Order fall-risk assessment</button>
+          <button data-a="Clinic will call Lakshmi today">Call patient today</button>
+          <button data-a="Reviewed, no action needed">Mark reviewed</button>
+        </div>
+        <ul class="carelog" id="carelog"></ul>
+      </div>
+    </div>
+    <div class="nav-row"><button class="btn ghost" data-go="2">← Monitoring</button><button class="btn" id="restart">Try another scenario ↺</button></div>
+  </div>
+</div>
+</div>
+
+<section id="why"><div class="wrap">
+  <p class="eyebrow">Why passive</p>
+  <h2 class="sec">Elders don't wear devices. Homes can still collect the data.</h2>
+  <p class="sub">Watches and rings need charging, pairing and daily habit, and adherence drops within weeks. Dhyaan's sensors sit where life already happens: the bathroom floor, the bed, the doorway.</p>
+  <div class="grid3">
+    <div class="card"><div class="stat">~100M</div><p>adults in India living with diabetes, all at risk of foot ulcers and amputation.</p></div>
+    <div class="card"><div class="stat">~150M</div><p>Indians aged 60+, a number set to roughly double by 2050.</p></div>
+    <div class="card"><div class="stat">Weeks</div><p>of warning before a foot ulcer appears: inflammation shows as one foot running hotter than the other.</p></div>
+  </div>
+</div></section>
+
+<section id="ai"><div class="wrap">
+  <p class="eyebrow">Where the AI lives</p>
+  <h2 class="sec">One sensor gives readings. Three give a person.</h2>
+  <p class="sub">The model learns each elder's normal and flags change across signals, combining them into one plain-language alert instead of five noisy ones.</p>
+  <div class="grid3">
+    <div class="card"><h3>Personal baselines</h3><p>“Normal” is Lakshmi's normal, not a population average. A resting heart rate of 76 matters if hers is usually 68.</p></div>
+    <div class="card"><h3>Cross-signal patterns</h3><p>More bed exits + worse sleep + rising sway = fall risk rising, even if each signal alone looks borderline.</p></div>
+    <div class="card"><h3>Confirm before alerting</h3><p>Multi-day confirmation keeps false alarms down, so families and doctors keep trusting the alerts.</p></div>
+  </div>
+</div></section>
+
+<section id="model"><div class="wrap">
+  <p class="eyebrow">Business model</p>
+  <h2 class="sec">Hardware near cost. Monitoring by subscription.</h2>
+  <p class="sub">The sensors are the way in; the ongoing value is the monitoring, the alerts and the doctor loop. That is what people pay for every month.</p>
+  <div class="grid3">
+    <div class="card"><h3>Who pays first</h3><p>Families who want early warning for a parent living alone, especially those living in another city or abroad.</p></div>
+    <div class="card"><h3>How we reach them</h3><p>Diabetologists recommend the mat to patients at risk of foot ulcers; word of mouth carries it from there.</p></div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div class="card"><h3>Start with one device</h3><p>The foot-health mat solves one urgent, costly problem and proves people will pay.</p></div>
+    <div class="card"><h3>Expand around the home</h3><p>Bed and motion sensors join the same subscription, turning one alert into a full picture of the person.</p></div>
+    <div class="card"><h3>The moat is the data</h3><p>Years of in-home signals per elder make the AI sharper and the doctor relationship stickier over time.</p></div>
+  </div>
+</div></section>
+
+<section id="risks"><div class="wrap">
+  <p class="eyebrow">Honest risks</p>
+  <h2 class="sec">What could break, and how we handle it.</h2>
+  <div class="tablewrap" style="background:var(--surface)">
+    <table class="risk">
+      <tr><th>Risk</th><th>Mitigation</th></tr>
+      <tr><td>Daily mat use drops off</td><td>The mat sits where feet already go each morning. A missed reading is itself a signal, and gently nudged.</td></tr>
+      <tr><td>False alarms erode trust</td><td>Personal baselines and multi-day confirmation before any alert.</td></tr>
+      <tr><td>Price sensitivity</td><td>Hardware near cost; value sits in the subscription. Clinics and insurers subsidise later.</td></tr>
+      <tr><td>No reimbursement like US remote monitoring</td><td>Prove willingness to pay with families first; take outcome data to insurers.</td></tr>
+      <tr><td>Hardware cost and support</td><td>Launch with the mat; add sensors only as subscription revenue covers them.</td></tr>
+      <tr><td>Competitors in contactless vitals</td><td>They sell to hospitals. We own the elder-in-the-home data, the cross-signal AI and the doctor loop.</td></tr>
+    </table>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Dhyaan, a concept pitch by Bala Aditya Anand · 2026 · Patient, data and prices in the prototype are illustrative.</div></footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+// ---------- theme ----------
+(function(){
+  const r=document.documentElement;
+  try{const s=localStorage.getItem('dhyaan-theme');if(s)r.dataset.theme=s;}catch(e){}
+  $('themeBtn').onclick=()=>{
+    const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+    r.dataset.theme=dark?'light':'dark';
+    try{localStorage.setItem('dhyaan-theme',r.dataset.theme);}catch(e){}
+  };
+})();
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);}
+
+// ---------- state ----------
+const S={scenario:'normal',sensors:{mat:true,bed:true,motion:true},step:0,installed:false,time:0,playing:false,speed:3,notes:[],sel:null};
+const SENS_NAME={mat:'floor mat',bed:'bed sensor',motion:'motion sensors'};
+const fmtT=m=>{m=Math.round(m);return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
+const rnd=(i,k)=>{const x=Math.sin(i*12.9898+k*78.233)*43758.5453;return x-Math.floor(x)-.5;};
+
+// ---------- 30-day data ----------
+const SIGNALS=[
+  {k:'foot',name:'Foot temp. difference',unit:'°C',sensor:'mat',dec:1,thr:2.2,dir:'up'},
+  {k:'balance',name:'Balance score',unit:'/100',sensor:'mat',dec:0,thr:70,dir:'down'},
+  {k:'weight',name:'Weight',unit:'kg',sensor:'mat',dec:1},
+  {k:'sleep',name:'Sleep',unit:'h',sensor:'bed',dec:1,thr:5.5,dir:'down'},
+  {k:'exits',name:'Night bed exits',unit:'/night',sensor:'bed',dec:0,thr:3,dir:'up'},
+  {k:'hr',name:'Resting heart rate',unit:'bpm',sensor:'bed',dec:0},
+  {k:'wake',name:'First movement',unit:'',sensor:'motion',time:true,thr:540,dir:'up'},
+  {k:'bath',name:'Bathroom visits',unit:'/day',sensor:'motion',dec:0},
+];
+function gen(sc){
+  const d={foot:[],balance:[],weight:[],sleep:[],exits:[],hr:[],wake:[],bath:[]};
+  for(let i=0;i<30;i++){
+    const ni=i>=14?(i-14)/15:0;
+    let foot=0.3+rnd(i,1)*0.3; if(sc==='foot'&&i>=18) foot+=(i-18)/11*2.6;
+    let bal=82+rnd(i,2)*5; if(sc==='night') bal-=ni*19;
+    let sleep=6.8+rnd(i,3)*0.7; if(sc==='night') sleep-=ni*1.6;
+    let ex=Math.max(0,Math.round(1+rnd(i,4)*1.4)); if(sc==='night') ex+=Math.round(ni*3);
+    let hr=68+rnd(i,5)*3; if(sc==='night') hr+=ni*7;
+    let wake=400+rnd(i,6)*30; if(sc==='routine'&&i>=25) wake=i===29?585:400+(i-24)*28;
+    d.foot.push(foot);d.balance.push(bal);d.weight.push(61.2+rnd(i,7)*0.5);d.sleep.push(sleep);
+    d.exits.push(ex);d.hr.push(hr);d.wake.push(wake);d.bath.push(Math.round(6+rnd(i,8)*2));
+  }
+  return d;
+}
+let D=gen('normal');
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const fmtV=(sig,v)=>sig.time?fmtT(v):v.toFixed(sig.dec)+(sig.unit&&!sig.unit.startsWith('/')?(sig.unit==='°C'?'°C':' '+sig.unit):'');
+function breach(sig,v){if(sig.thr==null)return false;return sig.dir==='up'?v>sig.thr:v<sig.thr;}
+
+// ---------- alerts ----------
+function computeAlerts(){
+  const a=[],missed=[],on=S.sensors;
+  let run=0;for(let i=29;i>=0&&D.foot[i]>2.2;i--)run++;
+  if(run>=3){ if(on.mat)a.push({lvl:'alert',sig:'foot',title:'Early foot-ulcer risk',body:`Right forefoot ${D.foot[29].toFixed(1)}°C warmer than the left for ${run} days. Usually comes weeks before a visible wound.`});
+    else missed.push({need:'mat',what:'a developing foot ulcer'});}
+  const ex5=mean(D.exits.slice(25));
+  if(ex5>=3){ if(on.bed)a.push({lvl:'alert',sig:'exits',title:'Night-time fall risk rising',body:`Up ${ex5.toFixed(1)}× a night this week (her usual: about 1). Sleep down to ${D.sleep[29].toFixed(1)} h.`});
+    else missed.push({need:'bed',what:'rising night-time bed exits'});}
+  if(D.balance[29]<70){ if(on.mat)a.push({lvl:'warn',sig:'balance',title:'Balance declining',body:`Balance score ${Math.round(D.balance[29])} vs her usual 82. More sway when standing.`});
+    else missed.push({need:'mat',what:'declining standing balance'});}
+  if(D.wake[29]>540){ if(on.motion)a.push({lvl:'alert',sig:'wake',title:'No movement by 9:00 this morning',body:`First movement only at ${fmtT(D.wake[29])}; usually around 6:40. Mornings have been getting later all week.`});
+    else missed.push({need:'motion',what:'a missed morning routine'});}
+  return {a,missed};
+}
+
+// ---------- step nav ----------
+function go(n){
+  S.step=n;
+  document.querySelectorAll('#steps button').forEach((b,i)=>b.classList.toggle('on',i===n));
+  document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('on',i===n));
+  if(n!==1)pause();
+  if(n===1){renderHome(); if(S.time===0)play();}
+  if(n===2)renderMonitor();
+  if(n===3)renderDoctor();
+  const top=$('prototype').getBoundingClientRect().top;
+  if(top<0)window.scrollTo({top:window.scrollY+top-70,behavior:'smooth'});
+}
+document.querySelectorAll('#steps button').forEach(b=>b.onclick=()=>go(+b.dataset.step));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
+$('restart').onclick=()=>{const order=['normal','foot','night','routine'];setScenario(order[(order.indexOf(S.scenario)+1)%4]);go(1);};
+
+document.querySelectorAll('#scen .pill').forEach(p=>p.onclick=()=>setScenario(p.dataset.s));
+function setScenario(s){
+  S.scenario=s;D=gen(s);S.notes=[];S.sel=null;S.time=0;
+  document.querySelectorAll('#scen .pill').forEach(p=>p.classList.toggle('on',p.dataset.s===s));
+  const names={normal:'Normal day',foot:'Foot ulcer developing',night:'Night-time fall risk',routine:'Missed morning routine'};
+  toast('Scenario: '+names[s]);
+  if(S.step===1){pause();renderHome();play();}
+  if(S.step===2)renderMonitor();
+  if(S.step===3)renderDoctor();
+}
+
+// ---------- step 1 ----------
+const PRICES={mat:6999,bed:4999,motion:2499};
+function renderKit(){
+  document.querySelectorAll('#kit .sensor').forEach(b=>b.classList.toggle('on',S.sensors[b.dataset.k]));
+  const inr=n=>'₹'+n.toLocaleString('en-IN');
+  let tot=0,html='';
+  for(const k of ['mat','bed','motion']) if(S.sensors[k]){tot+=PRICES[k];html+=`<div class="kv"><span>${SENS_NAME[k][0].toUpperCase()+SENS_NAME[k].slice(1)}</span><strong>${inr(PRICES[k])}</strong></div>`;}
+  html+=`<div class="kv"><span><b style="color:var(--ink)">Hardware total</b></span><strong>${inr(tot)}</strong></div>`;
+  $('orderLines').innerHTML=html;
+  const steps={mat:'Place the mat in the bathroom; it pairs over Wi-Fi',bed:'Slide the sensor under the mattress, plug in',motion:'Stick motion sensors in bathroom, kitchen and by the door'};
+  $('install').innerHTML=['mat','bed','motion'].filter(k=>S.sensors[k]).map(k=>`<li data-k="${k}" class="${S.installed?'done':''}"><span class="tick">${S.installed?'✓':''}</span>${steps[k]}</li>`).join('')+`<li data-k="ai" class="${S.installed?'done':''}"><span class="tick">${S.installed?'✓':''}</span>AI starts learning Lakshmi's baseline</li>`;
+  $('installBtn').disabled=!Object.values(S.sensors).some(Boolean);
+  $('installBtn').textContent=S.installed?'Go to day view →':'Install & go live →';
+}
+document.querySelectorAll('#kit .sensor').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.k;S.sensors[k]=!S.sensors[k];S.installed=false;S.time=0;renderKit();
+  toast((S.sensors[k]?'Added ':'Removed ')+SENS_NAME[k]);
+});
+$('installBtn').onclick=()=>{
+  if(S.installed){go(1);return;}
+  const items=[...document.querySelectorAll('#install li')];let i=0;$('installBtn').disabled=true;
+  (function next(){
+    if(i>0){items[i-1].classList.remove('busy');items[i-1].classList.add('done');items[i-1].querySelector('.tick').textContent='✓';}
+    if(i<items.length){items[i].classList.add('busy');i++;setTimeout(next,550);}
+    else{S.installed=true;$('installBtn').disabled=false;$('installBtn').textContent='Go to day view →';toast('Kit live. Lakshmi doesn\'t need to do anything.');setTimeout(()=>go(1),700);}
+  })();
+};
+
+// ---------- step 2: day simulation ----------
+const POS={bed:[130,112],bath:[350,110],mat:[350,145],kitchen:[505,120],living:[230,290],door:[530,300],out:[600,330]};
+const LOCNAME={bed:'in bed',bath:'in the bathroom',mat:'standing on the mat',kitchen:'in the kitchen',living:'in the living room',door:'at the front door',out:'out for a walk'};
+function dayEvents(){
+  const ev=[],t=29,sh=S.scenario==='routine'?185:0;
+  const exits=Math.min(4,D.exits[t]),nt=[95,185,250,330];
+  for(let i=0;i<exits;i++){
+    ev.push({t:nt[i],loc:'bath',sensor:'bed',node:'n-bed',text:'Bed exit (night)'});
+    ev.push({t:nt[i]+1,loc:'bath',sensor:'motion',node:'n-m-bath',text:'Bathroom motion'});
+    ev.push({t:nt[i]+9,loc:'bed',sensor:'bed',node:'n-bed',text:'Back in bed'});
+    if(i===2) ev.push({t:nt[i]+10,sensor:'bed',node:'n-bed',alert:true,text:'3rd bed exit tonight: fall-risk pattern flagged'});
+  }
+  if(sh) ev.push({t:540,sensor:'motion',node:'n-m-bath',alert:true,text:'No movement by 09:00: check-in alert sent'});
+  const f=D.foot[t],b=Math.round(D.balance[t]);
+  ev.push({t:400+sh,loc:'bath',sensor:'bed',node:'n-bed',text:`Up for the day · slept ${D.sleep[t].toFixed(1)} h`});
+  ev.push({t:402+sh,loc:'bath',sensor:'motion',node:'n-m-bath',text:'Bathroom motion'});
+  ev.push({t:412+sh,loc:'mat',sensor:'mat',node:'n-mat',alert:f>2.2||b<70,text:`Mat: foot ΔT ${f.toFixed(1)}°C · ${D.weight[t].toFixed(1)} kg · balance ${b}`});
+  ev.push({t:416+sh,loc:'bath'});
+  ev.push({t:440+sh,loc:'kitchen',sensor:'motion',node:'n-m-kitchen',text:'Kitchen motion (breakfast)'});
+  ev.push({t:510+sh,loc:'living'});
+  ev.push({t:750,loc:'kitchen',sensor:'motion',node:'n-m-kitchen',text:'Kitchen motion (lunch)'});
+  ev.push({t:810,loc:'bed',sensor:'bed',node:'n-bed',text:'In bed (nap) · HR 64'});
+  ev.push({t:880,loc:'living',sensor:'bed',node:'n-bed',text:'Out of bed after 70 min'});
+  ev.push({t:1050,loc:'door',sensor:'motion',node:'n-m-door',text:'Front door: went out'});
+  ev.push({t:1054,loc:'out'});
+  ev.push({t:1110,loc:'door',sensor:'motion',node:'n-m-door',text:'Front door: back home'});
+  ev.push({t:1114,loc:'living'});
+  ev.push({t:1170,loc:'kitchen',sensor:'motion',node:'n-m-kitchen',text:'Kitchen motion (dinner)'});
+  ev.push({t:1290,loc:'bath',sensor:'motion',node:'n-m-bath',text:'Bathroom motion'});
+  ev.push({t:1305,loc:'bed',sensor:'bed',node:'n-bed',text:`In bed · HR ${Math.round(D.hr[t])} · breathing 15/min`});
+  return ev.sort((a,b)=>a.t-b.t);
+}
+let EV=[],lastT=-1;
+function renderHome(){
+  EV=dayEvents();lastT=-1;
+  document.querySelectorAll('#plan .node').forEach(n=>n.classList.toggle('off',!S.sensors[n.dataset.sensor]));
+  updateHome(true);
+}
+function updateHome(full){
+  const t=S.time;
+  $('time').value=t;$('clock').textContent=fmtT(t);
+  let loc='bed';for(const e of EV){if(e.t>t)break;if(e.loc)loc=e.loc;}
+  const p=POS[loc];const el=$('elder');el.style.transform=`translate(${p[0]}px,${p[1]}px)`;el.style.opacity=loc==='out'?.25:1;
+  const asleep=loc==='bed'&&(t<400+(S.scenario==='routine'?185:0)||t>1305);
+  $('now').innerHTML=`${fmtT(t)} · Lakshmi is <b>${asleep?'asleep in bed':LOCNAME[loc]}</b>.`;
+  // pings for newly crossed events
+  if(!full) for(const e of EV){ if(e.t>lastT&&e.t<=t&&e.node&&S.sensors[e.sensor]){const n=$(e.node);n.classList.remove('ping');void n.getBBox();n.classList.add('ping');} }
+  lastT=t;
+  const cap=EV.filter(e=>e.t<=t&&e.sensor&&e.text&&S.sensors[e.sensor]);
+  $('cMat').textContent=cap.filter(e=>e.sensor==='mat').length;
+  $('cBed').textContent=cap.filter(e=>e.sensor==='bed'&&!e.alert).length;
+  $('cMot').textContent=cap.filter(e=>e.sensor==='motion'&&!e.alert).length;
+  const colors={mat:'var(--accent)',bed:'var(--cool)',motion:'var(--ok)'};
+  $('log').innerHTML=cap.length?cap.slice().reverse().map(e=>`<li class="${e.alert?'alert':''}"><time>${fmtT(e.t)}</time><span class="dot" style="background:${e.alert?'var(--alert)':colors[e.sensor]}"></span><span>${e.text}</span></li>`).join(''):'<span class="empty">Press play. Captured data appears here.</span>';
+}
+let timer=null;
+function play(){if(S.time>=1439)S.time=0;S.playing=true;$('playBtn').textContent='❚❚ Pause';clearInterval(timer);timer=setInterval(()=>{S.time=Math.min(1439,S.time+S.speed*2);updateHome();if(S.time>=1439){pause();toast('Day captured. Next: see what the family sees →');}},60);}
+function pause(){S.playing=false;$('playBtn').textContent='▶ Play';clearInterval(timer);}
+$('playBtn').onclick=()=>S.playing?pause():play();
+$('time').oninput=e=>{S.time=+e.target.value;lastT=S.time;updateHome(true);};
+document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>{S.speed=+b.dataset.v;document.querySelectorAll('#speed button').forEach(x=>x.classList.toggle('on',x===b));});
+
+// ---------- charts ----------
+function chart(sig,w,h,big){
+  const v=D[sig.k],pad=big?{l:44,r:12,t:12,b:26}:{l:2,r:2,t:4,b:4};
+  let lo=Math.min(...v),hi=Math.max(...v);
+  if(sig.thr!=null){lo=Math.min(lo,sig.thr);hi=Math.max(hi,sig.thr);}
+  const span=(hi-lo)||1;lo-=span*.12;hi+=span*.12;
+  const X=i=>pad.l+i*(w-pad.l-pad.r)/29,Y=y=>pad.t+(1-(y-lo)/(hi-lo))*(h-pad.t-pad.b);
+  const base=mean(v.slice(0,14));
+  let s=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="${big?'xMidYMid meet':'none'}">`;
+  if(big){
+    for(let k=0;k<=3;k++){const yv=lo+(hi-lo)*k/3;s+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(yv)}" y2="${Y(yv)}" stroke="var(--line)"/><text x="${pad.l-6}" y="${Y(yv)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Inter">${sig.time?fmtT(yv):yv.toFixed(sig.dec)}</text>`;}
+    [0,7,14,21,29].forEach(i=>s+=`<text x="${X(i)}" y="${h-6}" text-anchor="${i===29?'end':i===0?'start':'middle'}" font-size="11" fill="var(--muted)" font-family="Inter">${i===29?'Today':'Day '+(i+1)}</text>`);
+    s+=`<rect x="${X(0)}" y="${pad.t}" width="${X(13)-X(0)}" height="${h-pad.t-pad.b}" fill="var(--cool)" opacity=".07"/><text x="${X(0)+6}" y="${pad.t+14}" font-size="11" fill="var(--muted)" font-family="Inter">baseline period</text>`;
+  }
+  s+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(base)}" y2="${Y(base)}" stroke="var(--muted)" stroke-dasharray="2 3" opacity=".6"/>`;
+  if(sig.thr!=null)s+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(sig.thr)}" y2="${Y(sig.thr)}" stroke="var(--alert)" stroke-dasharray="5 4" opacity=".7"/>`+(big?`<text x="${w-pad.r}" y="${Y(sig.thr)-5}" text-anchor="end" font-size="11" fill="var(--alert)" font-family="Inter" paint-order="stroke" stroke="var(--surface2)" stroke-width="4">alert threshold</text>`:'');
+  s+=`<path d="${v.map((y,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(y).toFixed(1)).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="${big?2:1.6}" vector-effect="non-scaling-stroke"/>`;
+  v.forEach((y,i)=>{if(breach(sig,y)||big)s+=`<circle cx="${X(i)}" cy="${Y(y)}" r="${big?3.2:2.4}" fill="${breach(sig,y)?'var(--alert)':'var(--ink)'}"/>`;});
+  return s+'</svg>';
+}
+
+// ---------- step 3 ----------
+function renderMonitor(){
+  const {a,missed}=computeAlerts();
+  $('alerts').innerHTML=a.length?a.map(x=>`<div class="status ${x.lvl}"><strong>${x.title}</strong><p>${x.body}</p></div>`).join(''):`<div class="status ok"><strong>All signals in her normal range</strong><p>Slept ${D.sleep[29].toFixed(1)} h, up at ${fmtT(D.wake[29])}, mat reading normal. Nothing needs attention.</p></div>`;
+  $('missed').innerHTML=missed.map(m=>`<div class="missed">⚠ Not detected: <b>${m.what}</b>. This needs the ${SENS_NAME[m.need]}, which ${m.need==='motion'?'aren\'t':'isn\'t'} installed. <a href="#" data-add="${m.need}" style="color:var(--accent)">Add it</a></div>`).join('');
+  document.querySelectorAll('[data-add]').forEach(l=>l.onclick=e=>{e.preventDefault();S.sensors[l.dataset.add]=true;renderKit();renderMonitor();toast('Added '+SENS_NAME[l.dataset.add]);});
+  const feed=[...S.notes.map(n=>`<li class="doc"><span>Dr. Rao: ${n.text}</span><span>${n.t}</span></li>`),
+    `<li><span>Mat reading taken ${S.sensors.mat?'at '+fmtT(D.wake[29]+12):'(no mat)'}</span><span>Today</span></li>`,
+    `<li><span>Sleep ${S.sensors.bed?D.sleep[29].toFixed(1)+' h, '+D.exits[29]+' night exit'+(D.exits[29]===1?'':'s'):'not tracked'}</span><span>Today</span></li>`,
+    `<li><span>${S.sensors.motion?'Went out for a walk, back by 6:30 pm':'Daily routine not tracked'}</span><span>Yesterday</span></li>`];
+  $('feed').innerHTML=feed.join('');
+  const flagged=new Set(a.map(x=>x.sig));
+  $('trends').innerHTML=SIGNALS.map(sig=>{
+    if(!S.sensors[sig.sensor])return `<div class="tcard off"><div class="tn"><span>${sig.name}</span><span class="badge">${sig.sensor}</span></div><div class="need">Add the ${SENS_NAME[sig.sensor]} to track this.</div></div>`;
+    return `<div class="tcard ${flagged.has(sig.k)?'flag':''}" data-sig="${sig.k}"><div class="tn"><span>${sig.name}</span><span class="badge">${sig.sensor}</span></div><div class="tv">${fmtV(sig,D[sig.k][29])}</div>${chart(sig,200,46,false)}</div>`;
+  }).join('');
+  document.querySelectorAll('.tcard[data-sig]').forEach(c=>c.onclick=()=>{S.sel=c.dataset.sig;go(3);});
+}
+$('shareBtn').onclick=()=>{toast('30-day report shared with Dr. Rao');setTimeout(()=>go(3),500);};
+
+// ---------- step 4 ----------
+function renderDoctor(){
+  const {a}=computeAlerts();const flagged=new Set(a.map(x=>x.sig));
+  const on=Object.keys(S.sensors).filter(k=>S.sensors[k]);
+  $('docSensors').textContent='Data from '+(on.length?on.map(k=>SENS_NAME[k]).join(', '):'no sensors')+' · last 30 days';
+  if(!S.sel||!S.sensors[SIGNALS.find(s=>s.k===S.sel).sensor]) S.sel=(a[0]&&a[0].sig)||(SIGNALS.find(s=>S.sensors[s.sensor])||SIGNALS[0]).k;
+  $('dtBody').innerHTML=SIGNALS.map(sig=>{
+    if(!S.sensors[sig.sensor])return `<tr class="na"><td>${sig.name}</td><td colspan="3">No ${SENS_NAME[sig.sensor]}</td></tr>`;
+    const v=D[sig.k],b=mean(v.slice(0,14)),r=mean(v.slice(23));
+    const f=flagged.has(sig.k);
+    return `<tr data-sig="${sig.k}" class="${S.sel===sig.k?'sel':''}"><td>${sig.name}</td><td>${fmtV(sig,b)}</td><td>${fmtV(sig,r)}</td><td class="${f?'flagc':'okc'}">${f?'● Flag':'Normal'}</td></tr>`;
+  }).join('');
+  document.querySelectorAll('.dt tr[data-sig]').forEach(r=>r.onclick=()=>{S.sel=r.dataset.sig;renderDoctor();});
+  const sig=SIGNALS.find(s=>s.k===S.sel);
+  if(S.sensors[sig.sensor]){
+    const v=D[sig.k];
+    $('bcTitle').textContent=sig.name;
+    $('bcSub').textContent=`Today ${fmtV(sig,v[29])} · baseline ${fmtV(sig,mean(v.slice(0,14)))} · from the ${SENS_NAME[sig.sensor]}`;
+    $('bcSvg').innerHTML=chart(sig,560,220,true);
+  }else{$('bcTitle').textContent='No data';$('bcSub').textContent='Install a sensor to see clinical trends.';$('bcSvg').innerHTML='';}
+  $('carelog').innerHTML=S.notes.length?S.notes.map(n=>`<li><b>${n.t}</b> · ${n.text} <span style="float:right">sent to family ✓</span></li>`).join(''):'<li>No actions yet. Choose one above; it goes straight back to the family app.</li>';
+}
+document.querySelectorAll('#actions button').forEach(b=>b.onclick=()=>{
+  const d=new Date();S.notes.unshift({text:b.dataset.a,t:d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  renderDoctor();toast('Sent to family: '+b.dataset.a);
+});
+
+renderKit();
+</script>
+</body>
+</html>
